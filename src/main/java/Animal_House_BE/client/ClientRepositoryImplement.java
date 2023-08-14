@@ -2,7 +2,6 @@ package Animal_House_BE.client;
 
 import Animal_House_BE.order.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.tools.jconsole.JConsoleContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -53,7 +52,8 @@ public class ClientRepositoryImplement implements ClientRepository {
                     fetchedClient.getFirstName(),
                     fetchedClient.getLastName(),
                     fetchedClient.getEmail(),
-                    fetchedClient.getPassword()
+                    fetchedClient.getPassword(),
+                    fetchedClient.getAddress()
             );
 
             return clientToReturn;

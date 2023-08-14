@@ -2,18 +2,28 @@ package Animal_House_BE.item;
 
 public class Item {
 
+    int itemId;
     String itemName;
     String itemDescription;
     String itemPicture_link;
     int itemPrice;
     int itemQuantity;
 
-    public Item(String itemName, String itemDescription, String itemPicture_link, int itemPrice, int itemQuantity) {
+    public Item(int itemId, String itemName, String itemDescription, String itemPicture_link, int itemPrice, int itemQuantity) {
+        this.itemId = itemId;
         this.itemName = itemName;
         this.itemDescription = itemDescription;
         this.itemPicture_link = itemPicture_link;
         this.itemPrice = itemPrice;
         this.itemQuantity = itemQuantity;
+    }
+
+    public int getItemId() {
+        return itemId;
+    }
+
+    public void setItemId(int itemId) {
+        this.itemId = itemId;
     }
 
     public String getItemName() {

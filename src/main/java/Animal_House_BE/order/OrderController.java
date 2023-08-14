@@ -1,13 +1,12 @@
 package Animal_House_BE.order;
-import Animal_House_BE.order.Order;
-import Animal_House_BE.order.OrderService;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-
+@CrossOrigin(origins = "http://localhost:3000") // Allow requests from your frontend URL
 public class OrderController {
     @Autowired
     private OrderService orderService;
@@ -30,15 +29,21 @@ public class OrderController {
     public void deleteTemporalOrderByClientEmail (@PathVariable String clientEmail) throws Exception {
         orderService.deleteTemporalOrderByClientEmail(clientEmail);
     }
+
     @GetMapping(value = "/order/getTemporalOrder/{clientEmail}")
     public Order getTemporalOrderByClientEmail(@PathVariable String clientEmail) {
-    return orderService.getTemporalOrderByClientEmail (clientEmail);
+        return orderService.getTemporalOrderByClientEmail(clientEmail);
 
     }
 
     @GetMapping(value = "/order/getClosedOrders/{clientEmail}")
     public List<Order> getClosedOrdersByClientEmail(@PathVariable String clientEmail) {
         return orderService.getClosedOrdersByClientEmail(clientEmail);
+    }
+
+    @PutMapping(value = "/order/closeOrder/{clientEmail}")
+    public void closeTemporalOrder(@PathVariable String clientEmail) {
+        orderService.closeTemporalOrder(clientEmail);
     }
 
 

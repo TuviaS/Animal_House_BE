@@ -9,4 +9,6 @@ public interface OrderService {
     void addToOrderByClientEmail (String email, int itemNumber);
     void removeFromOrderByClientEmail (String email, int itemNumber);
     void deleteTemporalOrderByClientEmail(String clientEmail);
+
+    void closeTemporalOrder(String clientEmail);
 }

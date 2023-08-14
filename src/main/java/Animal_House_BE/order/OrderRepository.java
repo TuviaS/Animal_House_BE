@@ -10,4 +10,6 @@ public interface OrderRepository {
     List<Order> getClosedOrdersByClientId (int clientId);
     void deleteTemporalOrderByClientId(int clientId);
     void deleteClosedOrdersByClientId(int clientId);
+
+    void closeTemporalOrder(int clientId);
 }

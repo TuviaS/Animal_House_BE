@@ -1,13 +1,18 @@
 package Animal_House_BE.item;
-import Animal_House_BE.item.ItemMapper;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public class ItemRepositoryImplement implements ItemRepository{
     private String ITEMS_TABLE_NAME = "items";
+    private String FAVORITE_ITEMS_TABLE_NAME = "favorite_items";
     @Autowired
     private ItemMapper itemMapper;
     @Autowired
@@ -18,8 +23,8 @@ public class ItemRepositoryImplement implements ItemRepository{
     @Override
     public Item getItemByNumber(int itemNumber) {
         String sql = "SELECT * FROM " + ITEMS_TABLE_NAME + " WHERE item_id=?";
-
         return jdbcTemplate.queryForObject(sql, new ItemMapper(), itemNumber);
+
 
     }
 
@@ -36,4 +41,69 @@ public class ItemRepositoryImplement implements ItemRepository{
         return jdbcTemplate.queryForObject(sql, new Object[]{itemNumber}, Integer.class);
 
     }
+
+    @Override
+    public List<Item> getAllItems() {
+        String sql = "SELECT * FROM " + ITEMS_TABLE_NAME;
+        return jdbcTemplate.query(sql, new ItemMapper());
+    }
+
+    @Override
+    public void createItem(Item item) {
+        String sql = "INSERT INTO " + ITEMS_TABLE_NAME + "(item_name, item_description, item_picture_link, item_price, item_quantity) VALUES (?,?,?,?,?)";
+        jdbcTemplate.update(
+                sql,
+                item.getItemName(), item.getItemDescription(), item.getItemPicture_link(), item.getItemPrice(), item.getItemQuantity()
+        );
+    }
+
+    @Override
+    public void reduceItemQunatity(int itemNumber) {
+        int newQuantity = getItemQuantity(itemNumber) - 1;
+        String sql = "UPDATE " + ITEMS_TABLE_NAME + " SET item_quantity = ? WHERE item_id = ?";
+        jdbcTemplate.update(sql, newQuantity, itemNumber);
+    }
+
+    @Override
+    public void increaseItemQunatity(int itemNumber) {
+        int newQuantity = getItemQuantity(itemNumber) + 1;
+        String sql = "UPDATE " + ITEMS_TABLE_NAME + " SET item_quantity = ? WHERE item_id = ?";
+        jdbcTemplate.update(sql, newQuantity, itemNumber);
+    }
+
+    ///FAVORITE ITEMS
+
+    public List<Item> getFavoriteItemsListByClientId(int clientId) {
+        String sql = "SELECT item_id FROM " + FAVORITE_ITEMS_TABLE_NAME + " WHERE client_id=?";
+        List<Integer> itemIdsList = jdbcTemplate.queryForList(sql, Integer.class, clientId);
+
+        String itemQuery = "SELECT * FROM " + ITEMS_TABLE_NAME + " WHERE item_id=?";
+
+        List<Item> favoriteItems = new ArrayList<>();
+
+        for (Integer itemId : itemIdsList) {
+            Item item = jdbcTemplate.queryForObject(itemQuery, new ItemMapper(), itemId);
+            favoriteItems.add(item);
+        }
+
+        return favoriteItems;
+    }
+
+    public void addToFavoriteItemList(int clientId, int itemId) {
+        String sql = "INSERT INTO " + FAVORITE_ITEMS_TABLE_NAME + " (client_Id, item_Id) VALUES (?,?)";
+
+        try {
+            jdbcTemplate.update(sql, clientId, itemId);
+        } catch (DataAccessException ex) {
+            // Handle the exception or log the error
+            throw new RuntimeException("Failed to create a favorite item in table", ex);
+        }
+    }
+
+    public void deleteItemFromFavoriteItemList(int clientId, int itemId) {
+        String sql = "DELETE FROM " + FAVORITE_ITEMS_TABLE_NAME + " WHERE client_id=? AND item_id=?";
+        jdbcTemplate.update(sql, clientId, itemId);
+    }
+
+
 }

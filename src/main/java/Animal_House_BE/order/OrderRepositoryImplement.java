@@ -1,20 +1,13 @@
 package Animal_House_BE.order;
 
 
-import Animal_House_BE.client.Client;
-
 import Animal_House_BE.item.ItemService;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.hibernate.query.sql.internal.ParameterRecognizerImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
-import java.util.StringJoiner;
 
 @Repository
 public class OrderRepositoryImplement implements OrderRepository{
@@ -48,10 +41,6 @@ public class OrderRepositoryImplement implements OrderRepository{
        jdbcTemplate.update(
                sql,
                orderDate,clientId,itemNumber,deliveryAddress,itemPrice, status);
-        int existingItemQuantity = itemService.getItemQuantity(Math.abs(itemNumber));
-        existingItemQuantity -= 1;
-        sql = "UPDATE " + ITEM_TABLE_NAME + " SET item_quantity = ? WHERE item_id = ?";
-        jdbcTemplate.update(sql, existingItemQuantity, Math.abs(itemNumber));
     }
 
     @Override
@@ -64,12 +53,6 @@ public class OrderRepositoryImplement implements OrderRepository{
         sql = "UPDATE " + ORDER_TABLE_NAME + " SET item_id_list = ?, total_price=? WHERE order_id = ?";
         jdbcTemplate.update(sql, newItemList, totalPrice, orderId);
 
-        // Subtract an item from the stock
-
-        int existingItemQuantity = itemService.getItemQuantity(Math.abs(itemNumber));
-        existingItemQuantity -= 1;
-        sql = "UPDATE " + ITEM_TABLE_NAME + " SET item_quantity = ? WHERE item_id = ?";
-        jdbcTemplate.update(sql, existingItemQuantity, Math.abs(itemNumber));
 
         }
 
@@ -86,21 +69,10 @@ public class OrderRepositoryImplement implements OrderRepository{
         sql = "UPDATE " + ORDER_TABLE_NAME + " SET item_id_list = ?, total_price=? WHERE order_id = ?";
         jdbcTemplate.update(sql, newItemIdList, totalPrice, orderId);
 
-        //add back to items stock
-        // Subtract an item from the stock
-
-        int existingItemQuantity = itemService.getItemQuantity(itemNumber);
-        existingItemQuantity += 1;
-        sql = "UPDATE " + ITEM_TABLE_NAME + " SET item_quantity = ? WHERE item_id = ?";
-        jdbcTemplate.update(sql, existingItemQuantity, itemNumber);
-        if (newItemIdList.equals("")) {
-            sql = "DELETE FROM " + ORDER_TABLE_NAME + " WHERE order_id = ?";
-            jdbcTemplate.update(sql, orderId);
         }
 
-    }
 
-   @Override
+    @Override
     public List<Order> getClosedOrdersByClientId(int clientId) {
         String sql = "SELECT * FROM " + ORDER_TABLE_NAME + " WHERE client_id=? AND order_status='CLOSED'";
         return jdbcTemplate.query(sql, new OrderMapper(), clientId);
@@ -117,6 +89,14 @@ public class OrderRepositoryImplement implements OrderRepository{
     public void deleteClosedOrdersByClientId(int clientId) {
         String sql = "DELETE FROM " + ORDER_TABLE_NAME + " WHERE client_id=?";
         jdbcTemplate.update(sql, clientId);
+
+    }
+
+    @Override
+    public void closeTemporalOrder(int clientId) {
+        String sql = "UPDATE " + ORDER_TABLE_NAME + " SET order_status = ? WHERE client_id = ? AND order_status='TEMPORAL'";
+        jdbcTemplate.update(sql, "CLOSED", clientId);
+
 
     }
 

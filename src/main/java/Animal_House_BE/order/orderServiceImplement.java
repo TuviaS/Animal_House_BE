@@ -96,7 +96,7 @@ public class orderServiceImplement implements OrderService {
             totalPrice += itemService.getItemPrice(existingItemListAsIntArray[i]);
         }
         totalPrice-= (itemService.getItemPrice(itemNumber));
-        orderRepository.removeFromOrderByClientId(clientId,itemNumber,totalPrice);
+        orderRepository.removeFromOrderByClientId(clientId, itemNumber, totalPrice);
     }
 
     @Override
@@ -104,6 +104,13 @@ public class orderServiceImplement implements OrderService {
         Order tempOrder = getTemporalOrderByClientEmail(clientEmail);
         int clientId = tempOrder.getClientId();
         orderRepository.deleteTemporalOrderByClientId(clientId);
+    }
+
+    @Override
+    public void closeTemporalOrder(String clientEmail) {
+        Order temporalOrder = getTemporalOrderByClientEmail(clientEmail);
+        int clientId = temporalOrder.getClientId();
+        orderRepository.closeTemporalOrder(clientId);
     }
 
 
