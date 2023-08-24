@@ -4,6 +4,7 @@ import Animal_House_BE.order.OrderRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -41,26 +42,25 @@ public class ClientRepositoryImplement implements ClientRepository {
 
 
 
+
     @Override
     public ClientResponse getClientByEmail(String email) {
         String sql = "SELECT * FROM " + CLIENTS_TABLE_NAME + " WHERE email=?";
-        //Client fetchedClient = null;
         try {
             Client fetchedClient = jdbcTemplate.queryForObject(sql, new ClientMapper(), email);
-            ClientResponse clientToReturn = new ClientResponse (
-
+            ClientResponse clientToReturn = new ClientResponse(
                     fetchedClient.getFirstName(),
                     fetchedClient.getLastName(),
                     fetchedClient.getEmail(),
                     fetchedClient.getPassword(),
                     fetchedClient.getAddress()
             );
-
             return clientToReturn;
+        } catch (EmptyResultDataAccessException ex) {
+            // No client found with the given email, return an empty ClientResponse
+            return new ClientResponse("", "", "", "", "");
         } catch (DataAccessException ex) {
-            // Handle the exception or log the error
-            // You can throw a custom exception or return a default ClientResponse if needed
-            // For example:
+            // Handle other data access exceptions
             throw new RuntimeException("Failed to retrieve client information", ex);
         }
     }

@@ -1,6 +1,7 @@
 package Animal_House_BE.client;
 
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -10,6 +11,7 @@ public class ClientController {
 
     @Autowired
     private ClientService clientService;
+    private final Logger logger = LoggerFactory.getLogger(ClientController.class);
     @PostMapping(value = "client/create")
     public void createClient (@RequestBody Client client)throws  Exception {
         clientService.createClient(client);

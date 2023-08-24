@@ -1,9 +1,10 @@
 package Animal_House_BE.order;
 
-
 import Animal_House_BE.item.ItemService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -28,19 +29,26 @@ public class OrderRepositoryImplement implements OrderRepository{
 
     @Override
     public Order getTemporalOrderByClientId(int clientId) {
-
-
-        String sql = "SELECT * FROM " + ORDER_TABLE_NAME + " WHERE client_id=? AND order_status='TEMPORAL' ";
-        Order fetchedOrder = jdbcTemplate.queryForObject(sql, new OrderMapper(),clientId);
-        return fetchedOrder;
+        try {
+            String sql = "SELECT * FROM " + ORDER_TABLE_NAME + " WHERE client_id=? AND order_status='TEMPORAL' ";
+            Order fetchedOrder = jdbcTemplate.queryForObject(sql, new OrderMapper(), clientId);
+            return fetchedOrder;
+        } catch (EmptyResultDataAccessException ex) {
+            // No temporal order found for the given clientId, return null or handle as needed
+            return null;
+        } catch (DataAccessException ex) {
+            // Handle other data access exceptions if needed
+            throw new RuntimeException("Failed to retrieve temporal order", ex);
+        }
     }
+
 
     @Override
     public void createOrderByClientId(String orderDate, int clientId, int itemNumber, String deliveryAddress, int itemPrice, String status) {
-       String sql = "INSERT INTO " + ORDER_TABLE_NAME + " (order_date, client_id,item_id_list,delivery_address, total_price, order_status) VALUES (?,?,?,?,?,?)";
-       jdbcTemplate.update(
-               sql,
-               orderDate,clientId,itemNumber,deliveryAddress,itemPrice, status);
+        String sql = "INSERT INTO " + ORDER_TABLE_NAME + " (order_date, client_id,item_id_list,delivery_address, total_price, order_status) VALUES (?,?,?,?,?,?)";
+        jdbcTemplate.update(
+                sql,
+                orderDate, clientId, itemNumber, deliveryAddress, itemPrice, status);
     }
 
     @Override

@@ -3,6 +3,7 @@ package Animal_House_BE.item;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -74,20 +75,34 @@ public class ItemRepositoryImplement implements ItemRepository{
     ///FAVORITE ITEMS
 
     public List<Item> getFavoriteItemsListByClientId(int clientId) {
-        String sql = "SELECT item_id FROM " + FAVORITE_ITEMS_TABLE_NAME + " WHERE client_id=?";
-        List<Integer> itemIdsList = jdbcTemplate.queryForList(sql, Integer.class, clientId);
-
-        String itemQuery = "SELECT * FROM " + ITEMS_TABLE_NAME + " WHERE item_id=?";
-
         List<Item> favoriteItems = new ArrayList<>();
+        try {
+            String sql = "SELECT item_id FROM " + FAVORITE_ITEMS_TABLE_NAME + " WHERE client_id=?";
+            List<Integer> itemIdsList = jdbcTemplate.queryForList(sql, Integer.class, clientId);
 
-        for (Integer itemId : itemIdsList) {
-            Item item = jdbcTemplate.queryForObject(itemQuery, new ItemMapper(), itemId);
-            favoriteItems.add(item);
+
+            for (Integer itemId : itemIdsList) {
+                try {
+                    String itemQuery = "SELECT * FROM " + ITEMS_TABLE_NAME + " WHERE item_id=?";
+                    Item item = jdbcTemplate.queryForObject(itemQuery, new ItemMapper(), itemId);
+                    favoriteItems.add(item);
+                } catch (EmptyResultDataAccessException ex) {
+                    // No item found with the given itemId, continue to the next itemId
+                    // This can happen if the item was deleted or doesn't exist
+                    // You can choose to handle this case as needed
+                }
+            }
+
+            return favoriteItems;
+        } catch (EmptyResultDataAccessException ex) {
+            // No favorite items found for the given clientId, return an empty list
+            return favoriteItems;
+        } catch (DataAccessException ex) {
+            // Handle other data access exceptions if needed
+            throw new RuntimeException("Failed to retrieve favorite items", ex);
         }
-
-        return favoriteItems;
     }
+
 
     public void addToFavoriteItemList(int clientId, int itemId) {
         String sql = "INSERT INTO " + FAVORITE_ITEMS_TABLE_NAME + " (client_Id, item_Id) VALUES (?,?)";
